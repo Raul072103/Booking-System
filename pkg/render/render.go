@@ -2,6 +2,8 @@ package render
 
 import (
 	"bytes"
+	"fmt"
+	"github.com/justinas/nosurf"
 	"github.com/raul/BookingSystem/pkg/config"
 	"github.com/raul/BookingSystem/pkg/models"
 	"html/template"
@@ -17,11 +19,13 @@ func NewTemplates(a *config.AppConfig) {
 	app = a
 }
 
-func AddDefaultData(td *models.TemplateData) *models.TemplateData {
+func AddDefaultData(td *models.TemplateData, r *http.Request) *models.TemplateData {
+	td.CSRFToken = nosurf.Token(r)
+	fmt.Println("CSRFToken: ", td.CSRFToken)
 	return td
 }
 
-func Template(w http.ResponseWriter, tmpl string, td *models.TemplateData) {
+func Template(w http.ResponseWriter, r *http.Request, tmpl string, td *models.TemplateData) {
 	var tc map[string]*template.Template
 	var err error
 
@@ -43,7 +47,7 @@ func Template(w http.ResponseWriter, tmpl string, td *models.TemplateData) {
 
 	buf := new(bytes.Buffer)
 
-	td = AddDefaultData(td)
+	td = AddDefaultData(td, r)
 
 	err = t.Execute(buf, td)
 	if err != nil {
