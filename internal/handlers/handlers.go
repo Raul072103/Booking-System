@@ -3,9 +3,9 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/raul/BookingSystem/pkg/config"
-	"github.com/raul/BookingSystem/pkg/models"
-	"github.com/raul/BookingSystem/pkg/render"
+	"github.com/raul/BookingSystem/internal/config"
+	"github.com/raul/BookingSystem/internal/models"
+	"github.com/raul/BookingSystem/internal/render"
 	"log"
 	"net/http"
 )
