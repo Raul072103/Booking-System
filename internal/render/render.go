@@ -2,7 +2,6 @@ package render
 
 import (
 	"bytes"
-	"fmt"
 	"github.com/justinas/nosurf"
 	"github.com/raul/BookingSystem/internal/config"
 	"github.com/raul/BookingSystem/internal/models"
@@ -20,8 +19,10 @@ func NewTemplates(a *config.AppConfig) {
 }
 
 func AddDefaultData(td *models.TemplateData, r *http.Request) *models.TemplateData {
+	td.Flash = app.Session.PopString(r.Context(), "flash")
+	td.Warning = app.Session.PopString(r.Context(), "warning")
+	td.Error = app.Session.PopString(r.Context(), "error")
 	td.CSRFToken = nosurf.Token(r)
-	fmt.Println("CSRFToken: ", td.CSRFToken)
 	return td
 }
 
@@ -95,50 +96,3 @@ func CreateTemplateCache() (map[string]*template.Template, error) {
 
 	return myCache, err
 }
-
-//var tc = make(map[string]*template.Template)
-//
-//func Template(w http.ResponseWriter, t string) {
-//	var tmpl *template.Template
-//	var err error
-//
-//	// check to see if we already have the template in our cache
-//	_, inMap := tc[t]
-//	if !inMap {
-//		// need to create the template
-//		log.Println("creating template and adding to cache")
-//		err = createTemplateCache(t)
-//		if err != nil {
-//			log.Println(err)
-//			return
-//		}
-//	} else {
-//		// we have the template in the cache
-//		log.Println("using cached template")
-//	}
-//
-//	tmpl = tc[t]
-//
-//	err = tmpl.Execute(w, nil)
-//	if err != nil {
-//		log.Println(err)
-//	}
-//}
-//
-//func createTemplateCache(t string) error {
-//	templates := []string{
-//		fmt.Sprintf("./templates/%s", t),
-//		"./templates/base.layout.gohtml",
-//	}
-//
-//	// parse the template
-//	tmpl, err := template.ParseFiles(templates...)
-//	if err != nil {
-//		return err
-//	}
-//
-//	// add template to cache (map)
-//	tc[t] = tmpl
-//
-//	return nil
-//}
