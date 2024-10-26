@@ -19,19 +19,6 @@ var theTests = []struct {
 	params             []postData
 	expectedStatusCode int
 }{
-	//mux.Get("/", handlers.Repo.Home)
-	//mux.Get("/about", handlers.Repo.About)
-	//mux.Get("/generals-quarters", handlers.Repo.Generals)
-	//mux.Get("/majors-suite", handlers.Repo.Majors)
-	//mux.Get("/contact", handlers.Repo.Contact)
-	//
-	//mux.Get("/search-availability", handlers.Repo.Availability)
-	//mux.Post("/search-availability", handlers.Repo.PostAvailability)
-	//mux.Post("/search-availability-json", handlers.Repo.AvailabilityJSON)
-	//
-	//mux.Get("/make-reservation", handlers.Repo.Reservation)
-	//mux.Post("/make-reservation", handlers.Repo.PostReservation)
-	//mux.Get("/reservation-summary", handlers.Repo.ReservationSummary)
 
 	{"home", "/", "GET", []postData{}, http.StatusOK},
 	{"about", "/about", "GET", []postData{}, http.StatusOK},
