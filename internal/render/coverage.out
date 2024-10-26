@@ -1,0 +1,26 @@
+mode: set
+github.com/raul/BookingSystem/internal/render/render.go:19.40,21.2 1 1
+github.com/raul/BookingSystem/internal/render/render.go:23.84,29.2 5 1
+github.com/raul/BookingSystem/internal/render/render.go:31.99,35.18 3 1
+github.com/raul/BookingSystem/internal/render/render.go:35.18,37.3 1 0
+github.com/raul/BookingSystem/internal/render/render.go:37.8,39.17 2 1
+github.com/raul/BookingSystem/internal/render/render.go:39.17,42.4 2 0
+github.com/raul/BookingSystem/internal/render/render.go:46.2,47.9 2 1
+github.com/raul/BookingSystem/internal/render/render.go:47.9,49.3 1 0
+github.com/raul/BookingSystem/internal/render/render.go:51.2,56.16 4 1
+github.com/raul/BookingSystem/internal/render/render.go:56.16,59.3 2 0
+github.com/raul/BookingSystem/internal/render/render.go:62.2,63.16 2 1
+github.com/raul/BookingSystem/internal/render/render.go:63.16,66.3 2 0
+github.com/raul/BookingSystem/internal/render/render.go:68.2,68.12 1 1
+github.com/raul/BookingSystem/internal/render/render.go:71.88,76.16 3 1
+github.com/raul/BookingSystem/internal/render/render.go:76.16,78.3 1 0
+github.com/raul/BookingSystem/internal/render/render.go:81.2,81.29 1 1
+github.com/raul/BookingSystem/internal/render/render.go:81.29,84.17 3 1
+github.com/raul/BookingSystem/internal/render/render.go:84.17,86.4 1 0
+github.com/raul/BookingSystem/internal/render/render.go:88.3,89.17 2 1
+github.com/raul/BookingSystem/internal/render/render.go:89.17,91.4 1 0
+github.com/raul/BookingSystem/internal/render/render.go:93.3,93.23 1 1
+github.com/raul/BookingSystem/internal/render/render.go:93.23,95.18 2 1
+github.com/raul/BookingSystem/internal/render/render.go:95.18,97.5 1 0
+github.com/raul/BookingSystem/internal/render/render.go:100.3,100.21 1 1
+github.com/raul/BookingSystem/internal/render/render.go:103.2,103.21 1 1
