@@ -20,6 +20,23 @@ var session *scs.SessionManager
 
 // main is the main entry point in this server
 func main() {
+	err := run()
+	if err != nil {
+		log.Fatal("Failed running server!")
+	}
+
+	fmt.Println(fmt.Sprintf("Starting application on port %s", PORT_NUMBER))
+
+	srv := &http.Server{
+		Addr:    PORT_NUMBER,
+		Handler: routes(&app),
+	}
+
+	err = srv.ListenAndServe()
+	log.Fatal(err)
+}
+
+func run() error {
 	// what am I going to put in the session
 	gob.Register(models.Reservation{})
 
@@ -34,9 +51,10 @@ func main() {
 
 	app.Session = session
 
-	tc, err := render.CreateTemplateCache()
+	tc, err := render.CreateTemplateCache("C:\\Users\\raula\\Desktop\\facultate\\anul 3 sem 1\\Software Engineering\\Golang\\Learning\\BookingSystem\\templates")
 	if err != nil {
-		log.Fatal("cannot create template cache")
+		log.Fatal("Cannot create template cache")
+		return err
 	}
 
 	app.TemplateCache = tc
@@ -47,17 +65,5 @@ func main() {
 
 	render.NewTemplates(&app)
 
-	//http.HandleFunc("/", handlers.Repo.Home)
-	//http.HandleFunc("/about", handlers.Repo.About)
-
-	fmt.Println(fmt.Sprintf("Starting application on port %s", PORT_NUMBER))
-	// _ = http.ListenAndServe(PORT_NUMBER, nil)
-
-	srv := &http.Server{
-		Addr:    PORT_NUMBER,
-		Handler: routes(&app),
-	}
-
-	err = srv.ListenAndServe()
-	log.Fatal(err)
+	return err
 }
