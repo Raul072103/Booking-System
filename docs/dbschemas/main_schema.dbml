@@ -1,0 +1,57 @@
+// Use DBML to define your database structure
+// Docs: https://dbml.dbdiagram.io/docs
+
+Table users {
+  id integer [primary key]
+  first_name varchar(255)
+  last_name varchar(255)
+  email varchar(255)
+  password varchar(255)
+  access_level integer
+  created_at timestamp
+  updated_at timestamp
+}
+
+
+Table reservations {
+  id integer [primary key]
+  first_name varchar(255)
+  last_name varchar(255)
+  email varchar(255)
+  phone varchar(255)
+  start_date timestamp
+  end_date timestamp
+  room_id integer
+  created_at timestamp
+  updated_at timestamp
+}
+
+
+Table rooms {
+  id integer [primary key]
+  room_name varchar(255)
+}
+
+Ref: reservations.room_id > rooms.id
+
+Table room_restrictions {
+  id integer [primary key]
+  start_date timestamp
+  end_date timestamp
+  room_id integer
+  reservation_id integer
+  created_at timestamp
+  updated_at timestamp
+  restriction_id integer
+}
+
+Ref: room_restrictions.room_id > rooms.id
+Ref: room_restrictions.restriction_id > restrictions.id
+Ref: room_restrictions.reservation_id > reservations.id
+
+Table restrictions {
+  id integer [primary key]
+  restriction_name varchar(255)
+  created_at timestamp
+  updated_at timestamp
+}
