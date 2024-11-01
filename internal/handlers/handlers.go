@@ -4,10 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/raul/BookingSystem/internal/config"
+	"github.com/raul/BookingSystem/internal/driver"
 	"github.com/raul/BookingSystem/internal/forms"
 	"github.com/raul/BookingSystem/internal/helpers"
 	"github.com/raul/BookingSystem/internal/models"
 	"github.com/raul/BookingSystem/internal/render"
+	"github.com/raul/BookingSystem/internal/repository"
+	"github.com/raul/BookingSystem/internal/repository/dbrepo"
 	"log"
 	"net/http"
 )
@@ -18,12 +21,14 @@ var Repo *Repository
 // Repository is the repository type
 type Repository struct {
 	App *config.AppConfig
+	DB  repository.DatabaseRepo
 }
 
 // NewRepo creates a new repository
-func NewRepo(a *config.AppConfig) *Repository {
+func NewRepo(a *config.AppConfig, db *driver.DB) *Repository {
 	return &Repository{
 		App: a,
+		DB:  dbrepo.NewPostgresRepo(db.SQL, a),
 	}
 }
 
