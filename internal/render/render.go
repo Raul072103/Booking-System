@@ -15,8 +15,8 @@ import (
 
 var app *config.AppConfig
 
-// NewTemplates sets the config for the template package
-func NewTemplates(a *config.AppConfig) {
+// NewRenderer sets the config for the template package
+func NewRenderer(a *config.AppConfig) {
 	app = a
 }
 

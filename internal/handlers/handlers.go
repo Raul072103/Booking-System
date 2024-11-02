@@ -4,12 +4,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/raul/BookingSystem/internal/config"
+	"github.com/raul/BookingSystem/internal/driver"
 	"github.com/raul/BookingSystem/internal/forms"
 	"github.com/raul/BookingSystem/internal/helpers"
 	"github.com/raul/BookingSystem/internal/models"
 	"github.com/raul/BookingSystem/internal/render"
-	"log"
+	"github.com/raul/BookingSystem/internal/repository"
+	"github.com/raul/BookingSystem/internal/repository/dbrepo"
 	"net/http"
+	"strconv"
+	"time"
 )
 
 // Repo the repository used by the handlers
@@ -18,12 +22,14 @@ var Repo *Repository
 // Repository is the repository type
 type Repository struct {
 	App *config.AppConfig
+	DB  repository.DatabaseRepo
 }
 
 // NewRepo creates a new repository
-func NewRepo(a *config.AppConfig) *Repository {
+func NewRepo(a *config.AppConfig, db *driver.DB) *Repository {
 	return &Repository{
 		App: a,
+		DB:  dbrepo.NewPostgresRepo(db.SQL, a),
 	}
 }
 
@@ -71,11 +77,37 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	startDateString := r.Form.Get("start_date")
+	endDateString := r.Form.Get("end_date")
+
+	// 2020-01-01
+
+	layout := "2006-01-02"
+	startDate, err := time.Parse(layout, startDateString)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	endDate, err := time.Parse(layout, endDateString)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	roomID, err := strconv.Atoi(r.Form.Get("room_id"))
+	if err != nil {
+		helpers.ServerError(w, err)
+	}
+
 	reservation := models.Reservation{
 		FirstName: r.Form.Get("first_name"),
 		LastName:  r.Form.Get("last_name"),
 		Email:     r.Form.Get("email"),
 		Phone:     r.Form.Get("phone"),
+		StartDate: startDate,
+		EndDate:   endDate,
+		RoomId:    roomID,
 	}
 
 	form := forms.New(r.PostForm)
@@ -95,6 +127,25 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			helpers.ServerError(w, err)
 		}
+		return
+	}
+
+	newReservationId, err := m.DB.InsertReservation(reservation)
+	if err != nil {
+		helpers.ServerError(w, err)
+	}
+
+	restriction := models.RoomRestriction{
+		StartDate:     startDate,
+		EndDate:       endDate,
+		RoomId:        roomID,
+		ReservationId: newReservationId,
+		RestrictionId: 2,
+	}
+
+	err = m.DB.InsertRoomRestriction(restriction)
+	if err != nil {
+		helpers.ServerError(w, err)
 		return
 	}
 
@@ -133,9 +184,27 @@ func (m *Repository) PostAvailability(w http.ResponseWriter, r *http.Request) {
 	startDateString := r.Form.Get("start")
 	endDateString := r.Form.Get("end")
 
-	_, err := w.Write([]byte(fmt.Sprintf("Start date is %s and end date is %s", startDateString, endDateString)))
+	layout := "2006-01-02"
+	startDate, err := time.Parse(layout, startDateString)
 	if err != nil {
-		log.Println("Failed writing to POST /availability")
+		helpers.ServerError(w, err)
+		return
+	}
+
+	endDate, err := time.Parse(layout, endDateString)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	rooms, err := m.DB.SearchAvailabilityForAllRooms(startDate, endDate)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	for _, i := range rooms {
+		m.App.InfoLog.Println("ROOM: ", i.Id, i.RoomName)
 	}
 }
 
