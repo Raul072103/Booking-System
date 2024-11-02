@@ -13,6 +13,8 @@ import (
 	"github.com/raul/BookingSystem/internal/repository/dbrepo"
 	"log"
 	"net/http"
+	"strconv"
+	"time"
 )
 
 // Repo the repository used by the handlers
@@ -76,11 +78,37 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	startDateString := r.Form.Get("start_date")
+	endDateString := r.Form.Get("end_date")
+
+	// 2020-01-01
+
+	layout := "2006-01-02"
+	startDate, err := time.Parse(layout, startDateString)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	endDate, err := time.Parse(layout, endDateString)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	roomID, err := strconv.Atoi(r.Form.Get("room_id"))
+	if err != nil {
+		helpers.ServerError(w, err)
+	}
+
 	reservation := models.Reservation{
 		FirstName: r.Form.Get("first_name"),
 		LastName:  r.Form.Get("last_name"),
 		Email:     r.Form.Get("email"),
 		Phone:     r.Form.Get("phone"),
+		StartDate: startDate,
+		EndDate:   endDate,
+		RoomId:    roomID,
 	}
 
 	form := forms.New(r.PostForm)
@@ -100,6 +128,25 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			helpers.ServerError(w, err)
 		}
+		return
+	}
+
+	newReservationId, err := m.DB.InsertReservation(reservation)
+	if err != nil {
+		helpers.ServerError(w, err)
+	}
+
+	restriction := models.RoomRestriction{
+		StartDate:     startDate,
+		EndDate:       endDate,
+		RoomId:        roomID,
+		ReservationId: newReservationId,
+		RestrictionId: 1,
+	}
+
+	err = m.DB.InsertRoomRestriction(restriction)
+	if err != nil {
+		helpers.ServerError(w, err)
 		return
 	}
 
