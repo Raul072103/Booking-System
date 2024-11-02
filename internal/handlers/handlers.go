@@ -11,7 +11,6 @@ import (
 	"github.com/raul/BookingSystem/internal/render"
 	"github.com/raul/BookingSystem/internal/repository"
 	"github.com/raul/BookingSystem/internal/repository/dbrepo"
-	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -141,7 +140,7 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 		EndDate:       endDate,
 		RoomId:        roomID,
 		ReservationId: newReservationId,
-		RestrictionId: 1,
+		RestrictionId: 2,
 	}
 
 	err = m.DB.InsertRoomRestriction(restriction)
@@ -185,9 +184,27 @@ func (m *Repository) PostAvailability(w http.ResponseWriter, r *http.Request) {
 	startDateString := r.Form.Get("start")
 	endDateString := r.Form.Get("end")
 
-	_, err := w.Write([]byte(fmt.Sprintf("Start date is %s and end date is %s", startDateString, endDateString)))
+	layout := "2006-01-02"
+	startDate, err := time.Parse(layout, startDateString)
 	if err != nil {
-		log.Println("Failed writing to POST /availability")
+		helpers.ServerError(w, err)
+		return
+	}
+
+	endDate, err := time.Parse(layout, endDateString)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	rooms, err := m.DB.SearchAvailabilityForAllRooms(startDate, endDate)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	for _, i := range rooms {
+		m.App.InfoLog.Println("ROOM: ", i.Id, i.RoomName)
 	}
 }
 
