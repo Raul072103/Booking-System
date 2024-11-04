@@ -80,9 +80,9 @@ func (m *postgresDBRepo) SearchAvailabilityByDateByRoomId(start, end time.Time, 
 	    -- the reservation encapsulates another reservation
 	    $2 < start_date and $3 > end_date ) or (
 	    -- the reservation intersects another reservation by start date
-	    $2 <= start_date and $3 < end_date ) or (
+	    $3 > start_date and $3 < end_date ) or (
 	    -- the reservation intersects another reservation by end date
-	    $2 >= start_date and $3 >= end_date ))`
+	    $2 < end_date and $3 >= end_date ))`
 
 	var numRows int
 
@@ -122,13 +122,13 @@ func (m *postgresDBRepo) SearchAvailabilityForAllRooms(start, end time.Time) ([]
 	    from room_restrictions
 		where 
 			-- the reservation is in between
-			( $1 >= start_date and $2 <=  end_date ) or (
+			($1  >= start_date and $2 <= end_date ) or (
 			-- the reservation encapsulates another reservation
 			$1 < start_date and $2 > end_date ) or (
 			-- the reservation intersects another reservation by start date
-			$1 <= start_date and $2 < end_date ) or (
+			$2 > start_date and $2 < end_date  ) or (
 			-- the reservation intersects another reservation by end date
-			$1 >= start_date and $2 >= end_date )
+			$1 < end_date and $2 >= end_date)
 	    )`
 
 	var rooms []models.Room
@@ -157,4 +157,28 @@ func (m *postgresDBRepo) SearchAvailabilityForAllRooms(start, end time.Time) ([]
 	}
 
 	return rooms, nil
+}
+
+// GetRoomById returns the room with the specified id
+func (m *postgresDBRepo) GetRoomById(id int) (models.Room, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var room models.Room
+
+	query := `select id, room_name, created_at, updated_at from rooms where id = $1`
+
+	row := m.DB.QueryRowContext(ctx, query,
+		id,
+	)
+
+	err := row.Scan(&room.Id, &room.RoomName, &room.CreatedAt, &room.UpdatedAt)
+	if err != nil {
+		return models.Room{}, err
+	}
+	if row.Err() != nil {
+		return models.Room{}, row.Err()
+	}
+
+	return room, nil
 }

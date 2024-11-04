@@ -2,7 +2,9 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"github.com/go-chi/chi/v5"
 	"github.com/raul/BookingSystem/internal/config"
 	"github.com/raul/BookingSystem/internal/driver"
 	"github.com/raul/BookingSystem/internal/forms"
@@ -56,13 +58,34 @@ func (m *Repository) About(w http.ResponseWriter, r *http.Request) {
 
 // Reservation renders the make a reservation page and displays form
 func (m *Repository) Reservation(w http.ResponseWriter, r *http.Request) {
-	var emptyReservation models.Reservation
-	data := make(map[string]any)
-	data["reservation"] = emptyReservation
+	res, ok := m.App.Session.Get(r.Context(), "reservation").(models.Reservation)
+	if !ok {
+		helpers.ServerError(w, errors.New("reservation wasn't found in the session"))
+		return
+	}
 
-	err := render.Template(w, r, "make-reservation.page.gohtml", &models.TemplateData{
-		Form: forms.New(nil),
-		Data: data,
+	room, err := m.DB.GetRoomById(res.RoomId)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	res.Room.RoomName = room.RoomName
+
+	startDate := res.StartDate.Format("2006-01-02")
+	endDate := res.EndDate.Format("2006-01-02")
+
+	stringMap := make(map[string]string)
+	stringMap["start_date"] = startDate
+	stringMap["end_date"] = endDate
+
+	data := make(map[string]any)
+	data["reservation"] = res
+
+	err = render.Template(w, r, "make-reservation.page.gohtml", &models.TemplateData{
+		Form:      forms.New(nil),
+		Data:      data,
+		StringMap: stringMap,
 	})
 	if err != nil {
 		helpers.ServerError(w, err)
@@ -203,8 +226,25 @@ func (m *Repository) PostAvailability(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	for _, i := range rooms {
-		m.App.InfoLog.Println("ROOM: ", i.Id, i.RoomName)
+	if len(rooms) == 0 {
+		m.App.Session.Put(r.Context(), "error", "No availability")
+		http.Redirect(w, r, "/search-availability", http.StatusSeeOther)
+		return
+	}
+
+	data := make(map[string]any)
+	data["rooms"] = rooms
+
+	res := models.Reservation{
+		StartDate: startDate,
+		EndDate:   endDate,
+	}
+
+	m.App.Session.Put(r.Context(), "reservation", res)
+
+	err = render.Template(w, r, "choose-room.page.gohtml", &models.TemplateData{Data: data})
+	if err != nil {
+		helpers.ServerError(w, err)
 	}
 }
 
@@ -263,4 +303,23 @@ func (m *Repository) ReservationSummary(w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		helpers.ServerError(w, err)
 	}
+}
+
+// ChooseRoom renders the choose-room page
+func (m *Repository) ChooseRoom(w http.ResponseWriter, r *http.Request) {
+	roomId, err := strconv.Atoi(chi.URLParam(r, "id"))
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	res, ok := m.App.Session.Get(r.Context(), "reservation").(models.Reservation)
+	if !ok {
+		helpers.ServerError(w, errors.New("reservation wasn't found in the session"))
+		return
+	}
+
+	res.RoomId = roomId
+	m.App.Session.Put(r.Context(), "reservation", res)
+	http.Redirect(w, r, "/make-reservation", http.StatusSeeOther)
 }
