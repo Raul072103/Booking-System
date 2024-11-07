@@ -74,7 +74,7 @@ func (m *postgresDBRepo) SearchAvailabilityByDateByRoomId(start, end time.Time, 
 	query := `
 	select count(id)
 	from room_restrictions
-	where room_id = $1 and ((
+	where room_id = $1 and start_date >= CURRENT_DATE and not ((
 	    -- the reservation is in between
 	    $2  >= start_date and $3 <= end_date ) or (
 	    -- the reservation encapsulates another reservation
