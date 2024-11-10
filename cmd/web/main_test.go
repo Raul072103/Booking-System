@@ -1,9 +1,12 @@
 package main
 
-import "testing"
+import (
+	"github.com/raul/BookingSystem/internal/handlers"
+	"testing"
+)
 
 func TestRun(t *testing.T) {
-	_, err := run()
+	err := run(handlers.NewTestRepo(&app))
 	if err != nil {
 		t.Errorf("failed run()")
 	}

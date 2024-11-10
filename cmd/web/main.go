@@ -25,7 +25,13 @@ var errorLog *log.Logger
 
 // main is the main entry point in this server
 func main() {
-	db, err := run()
+	db, err := connectToDB()
+	if err != nil {
+		log.Fatal("Failed connecting to the database!")
+	}
+	repo := handlers.NewRepo(&app, db)
+
+	err = run(repo)
 	if err != nil {
 		log.Fatal("Failed running server!")
 	}
@@ -42,7 +48,7 @@ func main() {
 	log.Fatal(err)
 }
 
-func run() (*driver.DB, error) {
+func run(repo *handlers.Repository) error {
 	// what am I going to put in the session
 	gob.Register(models.Reservation{})
 	gob.Register(models.User{})
@@ -66,27 +72,31 @@ func run() (*driver.DB, error) {
 
 	app.Session = session
 
-	// connect to database
-	log.Println("Connecting to database...")
-	db, err := driver.ConnectSQL("host=localhost port=5432 dbname=postgres user=postgres password=")
-	if err != nil {
-		log.Fatal("Cannot connect to database! Dying...")
-	}
-	log.Println("Connected to database")
-
 	tc, err := render.CreateTemplateCache("C:\\Users\\raula\\Desktop\\facultate\\anul 3 sem 1\\Software Engineering\\Golang\\Learning\\BookingSystem\\templates")
 	if err != nil {
 		log.Fatal("Cannot create template cache")
-		return nil, err
+		return err
 	}
 
 	app.TemplateCache = tc
 	app.UseCache = app.InProduction
 
-	repo := handlers.NewRepo(&app, db)
 	handlers.NewHandlers(repo)
 	render.NewRenderer(&app)
 	helpers.NewHelpers(&app)
 
-	return db, err
+	return err
+}
+
+func connectToDB() (*driver.DB, error) {
+	// connect to database
+	log.Println("Connecting to database...")
+	db, err := driver.ConnectSQL("host=localhost port=5432 dbname=postgres user=postgres password=")
+	if err != nil {
+		log.Fatal("Cannot connect to database! Dying...")
+		return nil, err
+	}
+	log.Println("Connected to database")
+
+	return db, nil
 }
