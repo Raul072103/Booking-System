@@ -35,7 +35,11 @@ func main() {
 	if err != nil {
 		log.Fatal("Failed running server!")
 	}
+
 	defer db.SQL.Close()
+	defer close(app.MailChan)
+
+	listenForMail()
 
 	fmt.Println(fmt.Sprintf("Starting application on port %s", PORT_NUMBER))
 
@@ -54,6 +58,9 @@ func run(repo *handlers.Repository) error {
 	gob.Register(models.User{})
 	gob.Register(models.Room{})
 	gob.Register(models.Restriction{})
+
+	mailChan := make(chan models.MailData)
+	app.MailChan = mailChan
 
 	// change this to true when in production
 	app.InProduction = false
