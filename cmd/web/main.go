@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/gob"
+	"flag"
 	"fmt"
 	"github.com/alexedwards/scs/v2"
 	"github.com/raul/BookingSystem/internal/config"
@@ -18,6 +19,15 @@ import (
 
 const PORT_NUMBER = ":8080"
 
+var inProduction *bool
+var useCache *bool
+var dbHost *string
+var dbName *string
+var dbUser *string
+var dbPass *string
+var dbPort *string
+var dbSSL *string
+
 var app config.AppConfig
 var session *scs.SessionManager
 var infoLog *log.Logger
@@ -25,6 +35,8 @@ var errorLog *log.Logger
 
 // main is the main entry point in this server
 func main() {
+	parseCommandLineFlags()
+
 	db, err := connectToDB()
 	if err != nil {
 		log.Fatal("Failed connecting to the database!")
@@ -63,7 +75,9 @@ func run(repo *handlers.Repository) error {
 	app.MailChan = mailChan
 
 	// change this to true when in production
-	app.InProduction = false
+
+	app.InProduction = *inProduction
+	app.UseCache = *useCache
 
 	infoLog = log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	app.InfoLog = infoLog
@@ -86,7 +100,6 @@ func run(repo *handlers.Repository) error {
 	}
 
 	app.TemplateCache = tc
-	app.UseCache = app.InProduction
 
 	handlers.NewHandlers(repo)
 	render.NewRenderer(&app)
@@ -98,7 +111,8 @@ func run(repo *handlers.Repository) error {
 func connectToDB() (*driver.DB, error) {
 	// connect to database
 	log.Println("Connecting to database...")
-	db, err := driver.ConnectSQL("host=localhost port=5432 dbname=postgres user=postgres password=")
+	connectionString := fmt.Sprintf("host=%s port=%s dbname=%s user=%s password=%s sslmode=%s", *dbHost, *dbPort, *dbName, *dbUser, *dbPass, *dbSSL)
+	db, err := driver.ConnectSQL(connectionString)
 	if err != nil {
 		log.Fatal("Cannot connect to database! Dying...")
 		return nil, err
@@ -106,4 +120,22 @@ func connectToDB() (*driver.DB, error) {
 	log.Println("Connected to database")
 
 	return db, nil
+}
+
+func parseCommandLineFlags() {
+	inProduction = flag.Bool("production", true, "Application is in production")
+	useCache = flag.Bool("cache", true, "Use template cache")
+	dbHost = flag.String("dbhost", "localhost", "Database host")
+	dbName = flag.String("dbname", "postgres", "Database name")
+	dbUser = flag.String("dbuser", "postgres", "Database user")
+	dbPass = flag.String("dbpass", "", "Database password")
+	dbPort = flag.String("dbport", "5432", "Database port")
+	dbSSL = flag.String("dbssl", "disable", "Database ssl settings (disable, prefer, required)")
+
+	flag.Parse()
+
+	if *dbName == "" || *dbUser == "" {
+		fmt.Println("Missing required flags")
+		os.Exit(1)
+	}
 }

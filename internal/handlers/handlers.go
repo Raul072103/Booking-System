@@ -503,12 +503,49 @@ func (m *Repository) Logout(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/user/login", http.StatusSeeOther)
 }
 
-// AdminDashboard
+// AdminDashboard renders the admin dashboard page
 func (m *Repository) AdminDashboard(w http.ResponseWriter, r *http.Request) {
 	err := render.Template(w, r, "admin-dashboard.page.gohtml", &models.TemplateData{})
 	if err != nil {
 		helpers.ServerError(w, err)
 		return
 	}
+}
 
+// AdminNewReservations renders the admin new reservation page
+func (m *Repository) AdminNewReservations(w http.ResponseWriter, r *http.Request) {
+	err := render.Template(w, r, "admin-new-reservations.page.gohtml", &models.TemplateData{})
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+}
+
+// AdminAllReservations renders the admin all reservations page
+func (m *Repository) AdminAllReservations(w http.ResponseWriter, r *http.Request) {
+	reservations, err := m.DB.AllReservations()
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	data := make(map[string]any)
+	data["reservations"] = reservations
+
+	err = render.Template(w, r, "admin-all-reservations.page.gohtml", &models.TemplateData{
+		Data: data,
+	})
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+}
+
+// AdminReservationsCalender renders the admin reservation calendar
+func (m *Repository) AdminReservationsCalender(w http.ResponseWriter, r *http.Request) {
+	err := render.Template(w, r, "admin-reservations-calendar.page.gohtml", &models.TemplateData{})
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
 }

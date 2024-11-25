@@ -1,2 +1,2 @@
 go build -o bookings.exe ./cmd/web/.
-bookings.exe
+bookings.exe -dbname=postgres -dbuser=postgres -cache=false -production=false
